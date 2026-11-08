@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Flip Ledger</title>
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Flip Ledger">
+<meta name="theme-color" content="#1d4ed8">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Instrument+Sans:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef3fb;--surface:#fff;--ink:#0f1e36;--mute:#566a88;--line:#d2dcec;--blue:#1d4ed8;--on-blue:#fff;--band:#1d4ed8;--blue-bg:#e3ecff;--good:#0e7a4b;--good-bg:#dff5e9;--bad:#c2362b;color-scheme:light;box-sizing:border-box;padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1424;--surface:#13203a;--ink:#e6edf9;--mute:#93a7c8;--line:#243556;--blue:#6b99ff;--on-blue:#0b1424;--band:#16306b;--blue-bg:#1b2d52;--good:#4cc38a;--good-bg:#14352a;--bad:#ef7b6f;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0b1424;--surface:#13203a;--ink:#e6edf9;--mute:#93a7c8;--line:#243556;--blue:#6b99ff;--on-blue:#0b1424;--band:#16306b;--blue-bg:#1b2d52;--good:#4cc38a;--good-bg:#14352a;--bad:#ef7b6f;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-tap-highlight-color:transparent;}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.45 "Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;user-select:none;-webkit-user-select:none;}
+input, textarea {user-select:auto;-webkit-user-select:auto;}
+main{max-width:680px;margin:0 auto;padding:22px 16px 120px}
+.num,h1,h2,summary,.chip{font-family:"Bricolage Grotesque","Arial Narrow",system-ui,sans-serif}
+.num{font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+h1{font-size:30px;font-weight:800;margin:0 0 4px;letter-spacing:-.01em}
+.band{background:var(--band);color:#fff;padding:calc(env(safe-area-inset-top,0px) + 18px) 16px 20px}
+.band div{max-width:680px;margin:0 auto}
+.band p{margin:0;opacity:.85}
+h2{font-size:20px;font-weight:800;margin:24px 0 8px}
+.lbl{margin:0;color:var(--mute);font-weight:600}
+.big{display:inline-block;font-size:clamp(48px,14vw,76px);font-weight:800;line-height:1.05;margin:0;border-bottom:6px double currentColor;padding-bottom:2px}
+.good{color:var(--good)}.bad{color:var(--bad)}
+.note{color:var(--mute);margin:8px 0 0;font-size:15px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin:18px 0 20px}
+.stat{background:var(--surface);padding:10px 12px}
+.stat span{display:block;font-size:13px;color:var(--mute)}
+.stat b{font-size:22px;font-weight:600}
+.mrow{display:grid;grid-template-columns:40px 1fr 76px;gap:8px;align-items:center;margin:5px 0;font-size:14px}
+.mrow b{text-align:right;font-weight:600}
+.track{height:12px;background:var(--line)}
+.fill{height:100%;min-width:2px}
+details{background:var(--surface);border:1px solid var(--line);border-top:3px solid var(--blue);border-radius:4px;padding:12px}
+summary{font-size:20px;font-weight:800;cursor:pointer}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.full{grid-column:1/-1}
+label{display:block;font-weight:600;font-size:14px;color:var(--mute)}
+input{width:100%;margin-top:4px;padding:10px 12px;font:400 16px "Instrument Sans",system-ui,sans-serif;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px}
+button{font:600 15px "Instrument Sans",system-ui,sans-serif;cursor:pointer;border-radius:4px}
+.act{background:var(--blue);color:var(--on-blue);border:0;padding:10px 16px}
+.ghost{background:none;border:1px solid var(--line);color:var(--mute);padding:7px 11px;font-size:14px}
+.chips{display:flex;gap:6px;margin:0 0 12px;flex-wrap:wrap}
+.chip{background:none;border:1px solid var(--line);color:var(--mute);padding:6px 12px;font-weight:600}
+.chip[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:var(--on-blue)}
+ul{list-style:none;margin:0;padding:0}
+.item{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:12px;margin-bottom:10px}
+.top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.meta{color:var(--mute);font-size:14px}
+.facts{display:flex;flex-wrap:wrap;gap:6px 22px;margin:10px 0}
+.facts span{font-size:13px;color:var(--mute)}
+.facts b{display:block;font-size:18px;font-weight:600;color:var(--ink)}
+.facts b.good{color:var(--good)}.facts b.bad{color:var(--bad)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end}
+.row>label{flex:1 1 100px}.row input{margin-top:4px}
+.empty{color:var(--mute);padding:6px 0}
+.pill{font-size:12px;font-weight:600;padding:2px 8px;border-radius:99px;margin-left:4px;vertical-align:1px}
+.pill.stock{background:var(--blue-bg);color:var(--blue)}
+.pill.sold{background:var(--good-bg);color:var(--good)}
+.item.stock-card{border-left:4px solid var(--blue)}
+.item.sold-card{border-left:4px solid var(--good)}
+button,input{min-height:44px}
+.fab{position:fixed;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);background:var(--blue);color:var(--on-blue);border:0;border-radius:99px;padding:0 22px;min-height:52px;font:600 16px "Instrument Sans",system-ui,sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.3);z-index:5}
+.goal{margin:12px 0 0;max-width:420px}
+.goalbar{height:10px;background:var(--line);border-radius:99px;overflow:hidden}
+.goalbar div{height:100%;background:var(--good)}
+.toast{position:fixed;left:16px;right:16px;bottom:calc(env(safe-area-inset-bottom,0px) + 80px);max-width:420px;margin:0 auto;background:var(--ink);color:var(--bg);padding:12px 16px;border-radius:8px;font-weight:600;text-align:center;z-index:6}
+.toast[hidden]{display:none}
+textarea{width:100%;height:110px;margin-top:8px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:4px;padding:8px}
+@media (max-width:460px){.stats{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<header class="band"><div><h1>Flip Ledger</h1><p>Track every flip, cost and sale.</p></div></header>
+<main>
+
+<div class="chips" id="periods"></div>
+<p class="lbl">Total profit</p>
+<p class="big num" id="total">$0</p>
+<p class="note" id="totalSub"></p>
+<div class="goal" id="goal" hidden></div>
+<div class="stats" id="stats"></div>
+
+<div id="monthsBox" hidden>
+<h2>Profit by month</h2>
+<div id="months"></div>
+</div>
+
+<h2>Add a flip</h2>
+<details id="addBox" open>
+<summary>What did you buy?</summary>
+<div class="grid">
+<label class="full">Item<input id="iname" placeholder="2014 Honda Civic, oak dresser, PS5"></label>
+<label>Category<input id="icat" list="cats" placeholder="Cars"></label>
+<label>Bought on<input id="idate" type="date"></label>
+<label>Paid ($)<input id="icost" type="number" step="any" inputmode="decimal" min="0"></label>
+<label>Repairs and other costs ($)<input id="iextra" type="number" step="any" inputmode="decimal" min="0"></label>
+<label class="full">Target sale price ($, optional)<input id="itarget" type="number" step="any" inputmode="decimal" min="0"></label>
+</div>
+<datalist id="cats"><option>Cars</option><option>Furniture</option><option>Electronics</option><option>Phones</option><option>Tools</option><option>Other</option></datalist>
+<p><button class="act" id="add">Add flip</button> <button class="ghost" id="cancelEdit" hidden>Cancel</button></p>
+<p class="note" id="addMsg" aria-live="polite"></p>
+</details>
+
+<h2>Your flips</h2>
+<div class="chips" id="chips"></div>
+<ul id="list"></ul>
+
+<h2>Settings and export</h2>
+<label>Default selling fee (%)<input id="fee" type="number" step="any" inputmode="decimal" min="0" max="99" value="0"></label>
+<p class="note">Used for break-even prices and to prefill fees when you mark an item sold. Use 0 for local cash sales.</p>
+<label>Monthly profit goal ($)<input id="goalIn" type="number" step="any" inputmode="decimal" min="0"></label>
+<p class="note">Shows a progress bar under your total. Leave blank to hide it.</p>
+<p><button class="ghost" id="sampleRm" hidden>Remove sample flips</button></p>
+<p><button class="ghost" id="csv">Copy all flips as CSV</button></p>
+<textarea id="csvBox" hidden readonly aria-label="CSV data"></textarea>
+<p class="note" id="csvMsg" aria-live="polite"></p>
+<h2>Backup</h2>
+<p class="note">Your flips are saved in this browser only. Copy a backup now and then. To move to another device, paste it below and restore. Restoring replaces what is here now.</p>
+<p><button class="ghost" id="bkCopy">Copy backup</button> <button class="ghost" id="bkRestore">Restore from pasted backup</button></p>
+<textarea id="bkBox" aria-label="Backup data" placeholder="Paste a backup here, then press Restore"></textarea>
+<p class="note" id="bkMsg" aria-live="polite"></p>
+</main>
+<button class="fab" id="fab">+ Add flip</button>
+<div class="toast" id="toast" role="status" hidden></div>
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt=n=>(n<0?"-":"")+"$"+Math.abs(Math.round(n)).toLocaleString("en-US");
+const pad=n=>String(n).padStart(2,"0");
+const iso=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const today=()=>iso(new Date());
+const dt=s=>new Date(s+"T00:00:00");
+const days=(a,b)=>Math.max(0,Math.round((dt(b)-dt(a))/864e5));
+const fd=s=>dt(s).toLocaleDateString("en-US",{month:"short",day:"numeric"});
+const val=id=>parseFloat($("#"+id).value);
+const basis=i=>i.cost+i.extra;
+const profit=i=>i.sold.price-i.sold.fees-basis(i);
+let S={items:[],fee:0,filter:"all",goal:0,period:"all"};
+try{const r=localStorage.getItem("flipledger.v1");if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}
+const save=()=>{try{localStorage.setItem("flipledger.v1",JSON.stringify(S))}catch(e){}};
+$("#idate").value=today();
+$("#fee").value=S.fee;
+
+function render(){
+  const allSold=S.items.filter(i=>i.sold),stock=S.items.filter(i=>!i.sold);
+  const nowD=new Date(),ym=nowD.getFullYear()+"-"+pad(nowD.getMonth()+1),yr=String(nowD.getFullYear());
+  const sold=allSold.filter(i=>S.period==="month"?i.sold.date.slice(0,7)===ym:S.period==="year"?i.sold.date.slice(0,4)===yr:true);
+  const plabel={all:"",month:" this month",year:" this year"}[S.period]||"";
+  const tp=sold.reduce((a,i)=>a+profit(i),0),sb=sold.reduce((a,i)=>a+basis(i),0),tied=stock.reduce((a,i)=>a+basis(i),0);
+  $("#periods").innerHTML=[["month","This month"],["year","This year"],["all","All time"]].map(p=>`<button class="chip" data-per="${p[0]}" aria-pressed="${S.period===p[0]}">${p[1]}</button>`).join("");
+  const mp=allSold.filter(i=>i.sold.date.slice(0,7)===ym).reduce((a,i)=>a+profit(i),0),g=$("#goal");
+  g.hidden=!S.goal;
+  if(S.goal)g.innerHTML=`<div class="goalbar"><div style="width:${Math.max(0,Math.min(100,mp/S.goal*100))}%"></div></div><p class="note">${fmt(mp)} of ${fmt(S.goal)} goal this month</p>`;
+  $("#sampleRm").hidden=!S.items.some(i=>i.sample);
+  $("#total").textContent=fmt(tp);
+  $("#total").className="big num "+(!sold.length?"":tp<0?"bad":"good");
+  $("#totalSub").textContent=sold.length
+    ?`From ${sold.length} sold ${sold.length===1?"flip":"flips"}${plabel}. ${fmt(tied)} is tied up in ${stock.length} ${stock.length===1?"item":"items"} in stock.`
+    :allSold.length?"No sales"+(plabel||" yet")+". "+fmt(tied)+" is tied up in stock.":"Add your first flip below. Profit shows up here once you mark one sold.";
+  const best=sold.reduce((m,i)=>!m||profit(i)>profit(m)?i:m,null);
+  const avgD=sold.length?sold.reduce((a,i)=>a+days(i.bought,i.sold.date),0)/sold.length:0;
+  const cells=[
+    ["Average profit per flip",sold.length?fmt(tp/sold.length):"-"],
+    ["Return on money spent",sb?Math.round(tp/sb*100)+"%":"-"],
+    ["Average days to sell",sold.length?(Math.round(avgD*10)/10)+"":"-"],
+    ["Flips that made money",sold.length?Math.round(sold.filter(i=>profit(i)>0).length/sold.length*100)+"%":"-"],
+    ["Best flip",best?fmt(profit(best)):"-"],
+    ["Cash tied up",fmt(tied)]];
+  $("#stats").innerHTML=cells.map(c=>`<div class="stat"><span>${c[0]}</span><b class="num">${c[1]}</b></div>`).join("");
+
+  const now=new Date(),ms=[];
+  for(let k=5;k>=0;k--){const d=new Date(now.getFullYear(),now.getMonth()-k,1);
+    const key=d.getFullYear()+"-"+pad(d.getMonth()+1);
+    ms.push({key,l:d.toLocaleDateString("en-US",{month:"short"}),v:allSold.filter(i=>i.sold.date.slice(0,7)===key).reduce((a,i)=>a+profit(i),0)})}
+  const mx=Math.max(1,...ms.map(m=>Math.abs(m.v)));
+  $("#monthsBox").hidden=!allSold.length;
+  $("#months").innerHTML=ms.map(m=>`<div class="mrow"><span>${m.l}</span><div class="track"><div class="fill" style="width:${Math.abs(m.v)/mx*100}%;background:var(${m.v<0?"--bad":"--good"})"></div></div><b class="num">${fmt(m.v)}</b></div>`).join("");
+
+  const f=S.filter,shown=S.items.filter(i=>f==="all"||(f==="stock"?!i.sold:!!i.sold));
+  $("#chips").innerHTML=[["all","All",S.items.length],["stock","In stock",stock.length],["sold","Sold",allSold.length]]
+    .map(c=>`<button class="chip" data-f="${c[0]}" aria-pressed="${f===c[0]}">${c[1]} (${c[2]})</button>`).join("");
+  $("#list").innerHTML=shown.length?shown.map(itemHtml).join(""):`<li class="empty">${S.items.length?"Nothing in this view yet.":'No flips yet. Tap Add flip, or <button class="ghost" data-sample="1">load 3 sample flips</button> to see how it works.'}</li>`;
+}
+
+function itemHtml(i){
+  const fee=S.fee/100,b=basis(i);
+  const head=`<div class="top"><div><strong>${esc(i.name)}</strong> <span class="pill ${i.sold?"sold":"stock"}">${i.sold?"Sold":"In stock"}</span><div class="meta">${i.cat?esc(i.cat)+", ":""}bought ${fd(i.bought)}</div></div>
+    <span><button class="ghost" data-edit="${i.id}">Edit</button> <button class="ghost" data-del="${i.id}" aria-label="Remove ${esc(i.name)}">Remove</button></span></div>`;
+  if(i.sold){
+    const p=profit(i),r=Math.round(p/b*100);
+    return `<li class="item sold-card">${head}<div class="facts">
+    <span>Total cost<b class="num">${fmt(b)}</b></span><span>Sold for<b class="num">${fmt(i.sold.price)}</b></span>
+    <span>Profit<b class="num ${p>=0?"good":"bad"}">${fmt(p)}</b></span><span>Return<b class="num ${r>=0?"good":"bad"}">${isFinite(r)?r+"%":"-"}</b></span>
+    <span>Days to sell<b class="num">${days(i.bought,i.sold.date)}</b></span></div>
+    <button class="ghost" data-reopen="${i.id}">Reopen as unsold</button></li>`;
+  }
+  const be=fee<1?b/(1-fee):b;
+  const tgt=i.target?`<span>Profit at your target<b class="num ${i.target*(1-fee)-b>=0?"good":"bad"}">${fmt(i.target*(1-fee)-b)}</b></span>`:"";
+  return `<li class="item stock-card">${head}<div class="facts">
+    <span>Total cost<b class="num">${fmt(b)}</b></span><span>Days held<b class="num">${days(i.bought,today())}</b></span>
+    <span>Break-even price<b class="num">${fmt(be)}</b></span>${tgt}</div>
+    <div class="row"><label>Add a cost ($)<input type="number" step="any" inputmode="decimal" min="0" data-c="${i.id}"></label><button class="ghost" data-addc="${i.id}">Add cost</button></div>
+    <div class="row" style="margin-top:10px"><label>Sold for ($)<input type="number" step="any" inputmode="decimal" min="0" data-p="${i.id}"></label>
+    <label>Fees ($)<input type="number" step="any" inputmode="decimal" min="0" data-fe="${i.id}"></label>
+    <label>Sold on<input type="date" value="${today()}" data-d="${i.id}"></label>
+    <button class="act" data-sell="${i.id}">Mark sold</button></div></li>`;
+}
+
+$("#add").addEventListener("click",()=>{
+  const name=$("#iname").value.trim(),cost=val("icost");
+  if(!name||isNaN(cost)){$("#addMsg").textContent="Enter an item name and what you paid.";return}
+  const data={name,cat:$("#icat").value.trim(),cost,extra:val("iextra")||0,bought:$("#idate").value||today(),target:val("itarget")||0};
+  const msg=editing?"Changes saved.":"Added to your stock.";
+  if(editing)Object.assign(S.items.find(i=>i.id===editing),data);
+  else{S.items.unshift(Object.assign({id:Date.now(),sold:null},data));S.filter="all"}
+  save();if(editing)stopEdit();
+  ["iname","icost","iextra","itarget"].forEach(id=>$("#"+id).value="");
+  $("#addMsg").textContent=msg;render();
+});
+
+$("#chips").addEventListener("click",e=>{if(e.target.dataset.f){S.filter=e.target.dataset.f;save();render()}});
+
+$("#list").addEventListener("click",e=>{
+  const t=e.target,d=t.dataset,find=id=>S.items.find(i=>String(i.id)===id);
+  if(d.sample){loadSample();return}
+  if(d.del){
+    if(!t.dataset.arm){t.dataset.arm=1;t.textContent="Tap again to remove";return}
+    S.items=S.items.filter(i=>String(i.id)!==d.del);
+  }else if(d.reopen){find(d.reopen).sold=null}
+  else if(d.addc){const f=document.querySelector(`[data-c="${d.addc}"]`),v=parseFloat(f.value);if(!(v>0))return f.focus();find(d.addc).extra+=v}
+  else if(d.edit){startEdit(find(d.edit));return}
+  else if(d.sell){
+    const q=s=>document.querySelector(`[${s}="${d.sell}"]`),p=parseFloat(q("data-p").value);
+    if(isNaN(p))return q("data-p").focus();
+    find(d.sell).sold={price:p,fees:parseFloat(q("data-fe").value)||0,date:q("data-d").value||today()};
+    const it=find(d.sell),pr=profit(it);
+    toast(pr>=0?"Nice flip! You made "+fmt(pr)+".":"Sold at a "+fmt(-pr)+" loss.");
+  }else return;
+  save();render();
+});
+$("#list").addEventListener("input",e=>{
+  const d=e.target.dataset;
+  if(d.fe)e.target.dataset.t=1;
+  if(d.p){const fe=document.querySelector(`[data-fe="${d.p}"]`);
+    if(fe&&!fe.dataset.t)fe.value=S.fee?Math.round(parseFloat(e.target.value||0)*S.fee)/100:""}
+});
+
+$("#fee").addEventListener("input",()=>{S.fee=Math.min(99,Math.max(0,parseFloat($("#fee").value)||0));save();render()});
+
+$("#csv").addEventListener("click",async()=>{
+  const q=v=>'"'+String(v).replace(/"/g,'""')+'"';
+  const rows=[["Item","Category","Bought","Paid","Other costs","Sold on","Sold for","Selling fees","Profit"]].concat(S.items.map(i=>
+    [i.name,i.cat,i.bought,i.cost,i.extra,i.sold?i.sold.date:"",i.sold?i.sold.price:"",i.sold?i.sold.fees:"",i.sold?profit(i):""]));
+  const text=rows.map(r=>r.map(q).join(",")).join("\n"),box=$("#csvBox");
+  try{await navigator.clipboard.writeText(text);box.hidden=true;$("#csvMsg").textContent="Copied. Paste it into a spreadsheet."}
+  catch(e){box.hidden=false;box.value=text;box.select();$("#csvMsg").textContent="Select all and copy this text into a spreadsheet."}
+});
+
+let editing=null;
+function stopEdit(){editing=null;$("#add").textContent="Add flip";$("#cancelEdit").hidden=true;$("#idate").value=today();["iname","icat","icost","iextra","itarget"].forEach(id=>$("#"+id).value="")}
+function startEdit(i){
+  editing=i.id;$("#iname").value=i.name;$("#icat").value=i.cat||"";$("#idate").value=i.bought;
+  $("#icost").value=i.cost;$("#iextra").value=i.extra||"";$("#itarget").value=i.target||"";
+  $("#add").textContent="Save changes";$("#cancelEdit").hidden=false;$("#addBox").open=true;
+  $("#addMsg").textContent="Editing "+i.name+".";$("#addBox").scrollIntoView({behavior:"smooth"});
+}
+$("#cancelEdit").addEventListener("click",()=>{stopEdit();$("#addMsg").textContent=""});
+
+$("#bkCopy").addEventListener("click",async()=>{
+  const text=JSON.stringify({v:1,items:S.items,fee:S.fee}),box=$("#bkBox");
+  box.value=text;
+  try{await navigator.clipboard.writeText(text);$("#bkMsg").textContent="Backup copied. Keep it somewhere safe."}
+  catch(e){box.select();$("#bkMsg").textContent="Select all and copy the text above."}
+});
+$("#bkRestore").addEventListener("click",()=>{
+  try{
+    const d=JSON.parse($("#bkBox").value);
+    if(!d||!Array.isArray(d.items))throw 0;
+    S.items=d.items;S.fee=parseFloat(d.fee)||0;$("#fee").value=S.fee;save();render();
+    $("#bkMsg").textContent="Restored "+d.items.length+" flips.";
+  }catch(e){$("#bkMsg").textContent="That doesn’t look like a Flip Ledger backup. Copy a backup first, then paste the whole text here."}
+});
+
+$("#periods").addEventListener("click",e=>{if(e.target.dataset.per){S.period=e.target.dataset.per;save();render()}});
+$("#goalIn").value=S.goal||"";
+$("#goalIn").addEventListener("input",()=>{S.goal=Math.max(0,parseFloat($("#goalIn").value)||0);save();render()});
+$("#fab").addEventListener("click",()=>{const b=$("#addBox");b.open=true;b.scrollIntoView({behavior:"smooth"});setTimeout(()=>$("#iname").focus(),350)});
+let tt;
+function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(tt);tt=setTimeout(()=>{t.hidden=true},2600)}
+function loadSample(){
+  const d=n=>{const x=new Date();x.setDate(x.getDate()-n);return iso(x)};
+  const mk=(name,cat,cost,extra,ago,sp,sf,sa)=>({id:Date.now()+Math.random(),sample:true,name,cat,cost,extra,bought:d(ago),target:0,sold:sp?{price:sp,fees:sf,date:d(sa)}:null});
+  S.items.unshift(mk("2013 Honda Accord","Cars",3200,450,21,4600,0,4),mk("Oak dresser","Furniture",60,15,9,180,14,2),mk("PS5 console","Electronics",250,0,5,0,0,0));
+  save();render();
+}
+$("#sampleRm").addEventListener("click",()=>{S.items=S.items.filter(i=>!i.sample);save();render()});
+
+render();
+</script>
+</body>
+</html>
